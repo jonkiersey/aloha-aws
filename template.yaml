@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: |
+  Aloha stack.
+Globals:
+  Function:
+    Timeout: 3
+    LoggingConfig:
+      LogFormat: JSON
+Resources:
+  AlohaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: dist/app.lambdaHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      Events:
+        JonApprovalGetEvent:
+          Type: Api
+          Properties:
+            Path: /jon-approval
+            Method: GET
+        JonApprovalPostEvent:
+          Type: Api
+          Properties:
+            Path: /jon-approval
+            Method: POST
+      Environment:
+        Variables:
+          NODE_OPTIONS: ' --enable-source-maps'
+          COUNTERTABLE_TABLE_NAME: !Ref CounterTable
+          COUNTERTABLE_TABLE_ARN: !GetAtt CounterTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CounterTable
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - src/app.ts
+        Minify: true
+        Sourcemap: true
+        Target: es2020
+      SamResourceId: AlohaFunction
+  CounterTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+Outputs:
+  AlohaApi:
+    Description: API Gateway endpoint URL for main stage for Aloha function
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/main/
+  AlohaFunction:
+    Description: Aloha Lambda Function ARN
+    Value: !GetAtt AlohaFunction.Arn
+  AlohaFunctionIamRole:
+    Description: Implicit IAM Role created for Aloha function
+    Value: !GetAtt AlohaFunctionRole.Arn
