@@ -17,12 +17,15 @@ const updateCommand = new UpdateCommand({
     ':start': 0,
     ':incr': 1,
   },
+  ReturnValues: 'UPDATED_NEW',
 });
 
-const post = async (): Promise<void> => {
-  console.log('updateCommand', updateCommand);
+const post = async (): Promise<number> => {
   const response = await documentClient.send(updateCommand);
-  console.log('updateResponse', response);
+  if (response.Attributes === undefined) {
+    throw new Error('Failed to add approval');
+  }
+  return response.Attributes.count;
 };
 
 export default post;

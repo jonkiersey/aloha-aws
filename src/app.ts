@@ -17,15 +17,16 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
       return {
         statusCode: 200,
         body: JSON.stringify({
-          get: await get(),
+          count: await get(),
         }),
       };
     }
     if (event.httpMethod === 'POST') {
-      await post();
       return {
         statusCode: 200,
-        body: 'Approved',
+        body: JSON.stringify({
+          count: await post(),
+        }),
       };
     }
 
