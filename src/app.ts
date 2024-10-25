@@ -22,10 +22,11 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
       };
     }
     if (event.httpMethod === 'POST') {
+      const count = event.body ? JSON.parse(event.body).count : undefined;
       return {
         statusCode: 200,
         body: JSON.stringify({
-          count: await post(),
+          count: await post(count),
         }),
       };
     }
